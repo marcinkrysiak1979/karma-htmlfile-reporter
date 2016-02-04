@@ -2,6 +2,7 @@ var os = require('os');
 var path = require('path');
 var fs = require('fs');
 var builder = require('xmlbuilder');
+//var $ = require('jquery-1.9.0');
 
 var HTMLReporter = function(baseReporterDecorator, config, emitter, logger, helper, formatError) {
   var outputFile = config.htmlReporter.outputFile;
@@ -37,7 +38,7 @@ var HTMLReporter = function(baseReporterDecorator, config, emitter, logger, help
       var head = html.ele('head');
       head.ele('meta', {charset: 'utf-8'});
       head.ele('title', {}, pageTitle + (subPageTitle ? ' - ' + subPageTitle : ''));
-      head.ele('style', {type: 'text/css'}, 'html,body{font-family:Arial,sans-serif;margin:0;padding:0;}body{padding:10px 40px;}h1{margin-bottom:0;}h2{margin-top:0;color:#999;}table{width:100%;margin-top:20px;margin-bottom:20px;table-layout:fixed;}tr.header{background:#ddd;font-weight:bold;border-bottom:none;}td{padding:7px;border-top:none;border-left:1px black solid;border-bottom:1px black solid;border-right:none;word-break:break-all;word-wrap:break-word;}tr.pass td{color:#003b07;background:#86e191;}tr.skip td{color:#7d3a00;background:#ffd24a;}tr.fail td{color:#5e0e00;background:#ff9c8a;}tr:first-child td{border-top:1px black solid;}td:last-child{border-right:1px black solid;}tr.overview{font-weight:bold;color:#777;}tr.overview td{padding-bottom:0px;border-bottom:none;}tr.system-out td{color:#777;}hr{height:2px;margin:30px 0;background:#000;border:none;}');
+      head.ele('style', {type: 'text/css'}, 'html,body{font-family:Arial,sans-serif;margin:0;padding:0;}body{padding:10px 40px;}h1{margin-bottom:0;}h2{margin-top:0;color:#999;}table{width:100%;margin-top:20px;margin-bottom:20px;table-layout:fixed;}tr.header{background:#ddd;font-weight:bold;border-bottom:none;}td{padding:7px;border-top:none;border-left:1px black solid;border-bottom:1px black solid;border-right:none;word-break:break-all;word-wrap:break-word;}.pass{color:green;}.skip{color:grey;}.fail{color:red;}tr:first-child td{border-top:1px black solid;}td:last-child{border-right:1px black solid;}tr.overview{font-weight:bold;color:#777;}tr.overview td{padding-bottom:0px;border-bottom:none;}tr.system-out td{color:#777;}hr{height:2px;margin:30px 0;background:#000;border:none;}');
     },
     createBody: function() {
       body = html.ele('body');
@@ -54,18 +55,20 @@ var HTMLReporter = function(baseReporterDecorator, config, emitter, logger, help
 	var header;
 	var timestamp = (new Date()).toLocaleString();
 
-	suite = suites[browser.id] = body.ele('table', {cellspacing:'0', cellpadding:'0', border:'0'});
-	suite.ele('tr', {class:'overview'}).ele('td', {colspan:'3', title:browser.fullName}, 'Browser: ' + browser.name);
-	suite.ele('tr', {class:'overview'}).ele('td', {colspan:'3'}, 'Timestamp: ' + timestamp);
-	suites[browser.id]['results'] = suite.ele('tr').ele('td', {colspan:'3'});
+	suite = suites[browser.id] = body.ele('div', {id: "suits-container"});
+	//suite.ele('tr', {class:'overview'}).ele('td', {colspan:'3', title:browser.fullName}, 'Browser: ' + browser.name);
+	//suite.ele('tr', {class:'overview'}).ele('td', {colspan:'3'}, 'Timestamp: ' + timestamp);
+	//suites[browser.id]['results'] = suite.ele('tr').ele('td', {colspan:'3'});
 
-	header = suite.ele('tr', {class:'header'});
-	header.ele('td', {}, 'Status');
-	header.ele('td', {}, 'Spec');
-	header.ele('td', {}, 'Suite / Results');
+	//header = suite.ele('tr', {class:'header'});
+	//header.ele('td', {}, 'Status');
+    //header.ele('td', {}, 'Suite / Results');
+    //header.ele('td', {}, 'Spec');
 
-	body.ele('hr');
+	//body.ele('hr');
   };
+
+  this.suites = [];
 
   this.adapters = [function(msg) {
     allMessages.push(msg);
@@ -97,17 +100,17 @@ var HTMLReporter = function(baseReporterDecorator, config, emitter, logger, help
     var suite = suites[browser.id];
     var result = browser.lastResult;
 
-    if (suite && suite['results']) {
-      suite['results'].txt(result.total + ' tests / ');
-      suite['results'].txt((result.disconnected || result.error ? 1 : 0) + ' errors / ');
-      suite['results'].txt(result.failed + ' failures / ');
-      suite['results'].txt(result.skipped + ' skipped / ');
-      suite['results'].txt('runtime: ' + ((result.netTime || 0) / 1000) + 's');
-	  
-      if (allMessages.length > 0) {
-        suite.ele('tr', {class:'system-out'}).ele('td', {colspan:'3'}).raw('<strong>System output:</strong><br />' + allMessages.join('<br />'));
-      }
-    }
+    //if (suite && suite['results']) {
+    //  suite['results'].txt(result.total + ' tests / ');
+    //  suite['results'].txt((result.disconnected || result.error ? 1 : 0) + ' errors / ');
+    //  suite['results'].txt(result.failed + ' failures / ');
+    //  suite['results'].txt(result.skipped + ' skipped / ');
+    //  suite['results'].txt('runtime: ' + ((result.netTime || 0) / 1000) + 's');
+	 //
+    //  if (allMessages.length > 0) {
+    //    suite.ele('tr', {class:'system-out'}).ele('td', {colspan:'3'}).raw('<strong>System output:</strong><br />' + allMessages.join('<br />'));
+    //  }
+    //}
   };
 
   this.onRunComplete = function() {
@@ -139,18 +142,30 @@ var HTMLReporter = function(baseReporterDecorator, config, emitter, logger, help
 
   this.specSuccess = this.specSkipped = this.specFailure = function(browser, result) {
     var specClass = result.skipped ? 'skip' : (result.success ? 'pass' : 'fail');
-    var spec = suites[browser.id].ele('tr', {class:specClass});
+    var spec = suites[browser.id].ele('div', {class: "suit-container"});
+    //var spec = suites[browser.id].ele('div', {class: specClass + " suit-container"});
     var suiteColumn;
 
-    spec.ele('td', {}, result.skipped ? 'Skipped' : (result.success ? ('Passed in ' + ((result.time || 0) / 1000) + 's') : 'Failed'));
-    spec.ele('td', {}, result.description);
-    suiteColumn = spec.ele('td', {}).raw(result.suite.join(' &raquo; '));
+    //console.log('document', document);
 
-    if (!result.success) {
-      result.log.forEach(function(err) {
-        suiteColumn.raw('<br />' + formatError(err).replace(/</g,'&lt;').replace(/>/g,'&gt;'));
-      });
+
+
+    //spec.ele('td', {}, result.skipped ? 'Skipped' : (result.success ? ('Passed in ' + ((result.time || 0) / 1000) + 's') : 'Failed'));
+    for (var i=0; i<result.suite.length; i++) {
+      console.log('suites', this.suites, this.suites.indexOf( result.suite[i]) );
+      if (this.suites.indexOf( result.suite[i] ) === -1 ) {
+        this.suites.push(result.suite[i]);
+        suiteColumn = spec.ele('div', {class: "suite", style: 'color: blue; margin-left: ' + i*10 + 'px;' + 'margin-top: 5px;' }).raw(result.suite[i]);
+      }
     }
+    //suiteColumn = spec.ele('span', {class: "suit"}).raw(result.suite.join('<br>  '));
+    spec.ele('span', {class: specClass + ' spec', style: 'margin-left: ' + result.suite.length*10 + 'px'}, result.description + ' - ' + specClass);
+
+    //if (!result.success) {
+    //  result.log.forEach(function(err) {
+    //    spec.ele('span', {style: 'color: red;'}).raw('- ' + formatError(err));
+    //  });
+    //}
   };
 
   // TODO(vojta): move to onExit
